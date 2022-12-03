@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jinja2TemplateFlask</title>
+</head>
+<body>
+    <h1>Welcome, {{ user }}</h1>
+
+    <h2>Welcome with filters {{ user|capitalize }}</h2>
+
+
+    <h3>Estruturas de controle</h3>
+
+    {% for n in range(10) %}
+        {{ n }}
+    {% endfor %}
+    <br>
+    {% if len(user) > 1 %}
+        {{ user }}
+    {% endif %}
+
+    <img src={{ url_for('static', filename='img/img.png') }}>
+
+
+</body>
+</html>

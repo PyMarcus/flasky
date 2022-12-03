@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}
+Error page
+{% endblock %}
+
+{% block content %}
+Error
+{% endblock %}
+
+
+{% block body %}
+    <div class="container">
+        <div class="page-header">
+            <h3 class=""> {{ error }} </h3>
+
+            <a href={{ url_for('index', _external=True) }}
+               class="btn btn-success">
+                Voltar ao início
+                <br>
+
+            </a>
+        </div>
+
+        <div class="container">
+           {% block scripts %}
+            <p>The local date and time is {{moment(current_time).format('LLL')}}.</p>
+            <p>That was {{moment(current_time).fromNow(refresh=True)}} </p>
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}
+Form
+{{ super() }}
+{% endblock %}
+
+
+{% block body %}
+  <div class="container">
+    <form class="" method="POST">
+        <div class="form-group">
+            {{ form.name.label }}
+            {{ form.name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.email.label }}
+            {{ form.email(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.password.label }}
+            {{ form.password(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.confirm_password.label }}
+            {{ form.confirm_password(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="bg-success p-2 border-radius") }}
+        </div>
+    </form>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
