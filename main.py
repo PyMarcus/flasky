@@ -1,13 +1,17 @@
+import os
 import time
 from typing import Any
 from flask import Flask, request, g, current_app, session, url_for
 from flask import make_response, redirect, abort, render_template
+from flask.helpers import get_env
+from flask_mail import Mail, Message
 from flask_moment import Moment
 from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import Email, DataRequired, InputRequired, Length, EqualTo
 from flask import request, flash
+from flask_sqlalchemy import SQLAlchemy
 """
 Toda a aplicação flask deve ter uma instância
 de Flask, pois, por meio dela, há os dados de
@@ -65,7 +69,7 @@ def global_variables():
     return "Pronto", STATUS_CODE_200_OK
 
 
-def request_hooks() -> tuple[str, int]:
+def request_hooks() -> Any:
     """
     Antes e depois de algumas requisições,
     pode-se querer processar algumas informações, para isso,
@@ -219,6 +223,98 @@ def sess():
         return redirect(url_for('index')), STATUS_CODE_302_REDIRECT
     else:
         return render_template('user.html', form=form), STATUS_CODE_200_OK
+
+
+"""
+Databases:
+Para frameworks, muitas vezes, é util utilizar camadas de abstração,
+ORMS, pois, ganha-se muita produtividade.Mas, geralmente, há uma perda
+de performance.
+Flask contém o SQLAlchemy para lidar com tabelas relacionais, SQL.
+
+Os bancos são referenciados como urls:
+MySQLmysql://username:password@hostname/databasePostgrespostgresql://username:password@hostname/databaseSQLite (Unix)sqlite:////absolute/path/to/databaseSQLite (Windows)sqlite:///c:/absolute/path/to/database
+sqlite não tem um servidor, logo, nao precisa de hostname
+
+
+# tipos de dados do orm:
+StringstrVariable-length stringTextstrVariable-length string, optimized for large or unbound lengthUnicodeunicodeVariable-length Unicode stringUnicodeTextunicodeVariable-length Unicode string, optimized for large or unbound lengthBooleanboolBoolean valueDatedatetime.dateDate valueTimedatetime.timeTime valueDateTimedatetime.datetimeDate and time valueIntervaldatetime.timedeltaTime intervalEnumstrList of string valuesPickleTypeAny Python objectAutomatic Pickle serializationLargeBinarystrBinary blob
+"""
+base_dir = os.path.abspath(os.path.dirname(__file__))
+SQLALCHEMY_DATABASE_URI = 'SQLALCHEMY_DATABASE_URI'
+SQLALCHEMY_COMMIT_ON_TEARDOWN = 'SQLALCHEMY_COMMIT_ON_TEARDOWN'
+app.config[SQLALCHEMY_DATABASE_URI] = 'sqlite:///store.db' #+ base_dir # endereco do banco
+app.config[SQLALCHEMY_COMMIT_ON_TEARDOWN] = True  # commit automatico
+
+db = SQLAlchemy(app)  # instancia do sql alchemy com todas suas funcoes
+
+# com um orm, pode-se definir os modelos (tabelas) com classes:
+class User(db.Model):
+    """
+    primary_keyIf set to True, the column is the table’s primary key.uniqueIf set to True, do not allow duplicate values for this column.indexIf set to True, create an index for this column, so that queries are more efficient.nullableIf set to True, allow empty values for this column. If set to False, the column will not allow nullvalues.defaultDefine a default value for the column.
+    """
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, index=True)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))  # chave estrangeira = id de roles
+
+    def __repr__(self):
+        return f"User: {self.username}"
+
+class Role(db.Model):
+    __tablename__ = 'roles'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(55), unique=True, index=True)
+    user = db.relationship('User', backref='role')  # referencia a classe users
+
+    def __repr__(self):
+        return f"Role {self.name}"
+
+# para executar pip install flask_shell
+# executar db.create_all() para criar modelos drop_all() apaga
+
+admin_role = Role(name='Addm121')
+mod_role = Role(name='modd212')
+john = User(username='Joh21n26', role=mod_role)
+M = User(username='21M62', role=admin_role)
+"""with app.app_context() as c:
+    # inserts
+    db.session.add(admin_role)
+    db.session.add(mod_role)
+    db.session.add(M)
+    db.session.add(john)
+    db.session.commit()
+"""
+# ou db.session.add_all([itens])
+#  db.session.rollback() restaura sessao
+
+
+"""
+Email
+pip install flask-mail
+se nenhuma autenticacao for passada, sera enviada com
+as config do localhost
+"""
+
+
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+mail = Mail(app)
+
+
+def send_mail(to: list, subject: str, template: str, **kwargs) -> None:
+    msg = Message("TITLE" + subject, sender='MYMAIL', recipients=to)
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '.html', **kwargs)
+    mail.send(msg)
+
+
+# para enviar emails assincronos, deve-se colocar send dentro de um contexto,
+# pois ele usa o current_app (hook), logo, as threads devem ter isso nela
 
 
 if __name__ == '__main__':
