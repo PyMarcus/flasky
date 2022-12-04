@@ -278,14 +278,14 @@ admin_role = Role(name='Addm121')
 mod_role = Role(name='modd212')
 john = User(username='Joh21n26', role=mod_role)
 M = User(username='21M62', role=admin_role)
-"""with app.app_context() as c:
+with app.app_context() as c:
     # inserts
     db.session.add(admin_role)
     db.session.add(mod_role)
     db.session.add(M)
     db.session.add(john)
     db.session.commit()
-"""
+
 # ou db.session.add_all([itens])
 #  db.session.rollback() restaura sessao
 
